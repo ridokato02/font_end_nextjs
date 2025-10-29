@@ -1,17 +1,37 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '../types/product';
+import { useCart } from '../contexts/CartContext';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const { addToCart, isInCart } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsAdding(true);
+    addToCart(product);
+    
+    // Show feedback
+    setTimeout(() => {
+      setIsAdding(false);
+    }, 1000);
   };
 
   const getFirstImage = () => {
@@ -62,8 +82,18 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             </div>
             
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-              Thêm vào giỏ
+            <button 
+              onClick={handleAddToCart}
+              disabled={isAdding}
+              className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                isInCart(product.id)
+                  ? 'bg-green-600 text-white cursor-not-allowed'
+                  : isAdding
+                  ? 'bg-yellow-600 text-white cursor-not-allowed'
+                  : 'bg-red-600 text-white hover:bg-red-700'
+              }`}
+            >
+              {isInCart(product.id) ? 'Đã có trong giỏ' : isAdding ? 'Đang thêm...' : 'Thêm vào giỏ'}
             </button>
           </div>
         </div>
