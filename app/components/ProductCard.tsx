@@ -25,6 +25,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     
+    // Kiểm tra stock trước khi thêm vào giỏ
+    if (product.stock <= 0) {
+      return;
+    }
+    
     setIsAdding(true);
     addToCart(product);
     
@@ -72,29 +77,58 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.description}
           </p>
           
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-red-600">
-                {formatPrice(product.price)}
-              </span>
-              <span className="text-sm text-gray-500 line-through">
-                {formatPrice(product.price * 1.25)}
+          <div className="space-y-2">
+            {/* Stock status */}
+            <div className="flex items-center justify-between">
+              <span className={`text-sm font-medium ${
+                product.stock > 10 
+                  ? 'text-green-600' 
+                  : product.stock > 0 
+                  ? 'text-yellow-600' 
+                  : 'text-red-600'
+              }`}>
+                {product.stock > 10 
+                  ? `Còn hàng (${product.stock} sản phẩm)`
+                  : product.stock > 0 
+                  ? `Sắp hết hàng (${product.stock} sản phẩm)`
+                  : 'Hết hàng'
+                }
               </span>
             </div>
             
-            <button 
-              onClick={handleAddToCart}
-              disabled={isAdding}
-              className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
-                isInCart(product.id)
-                  ? 'bg-green-600 text-white cursor-not-allowed'
-                  : isAdding
-                  ? 'bg-yellow-600 text-white cursor-not-allowed'
-                  : 'bg-red-600 text-white hover:bg-red-700'
-              }`}
-            >
-              {isInCart(product.id) ? 'Đã có trong giỏ' : isAdding ? 'Đang thêm...' : 'Thêm vào giỏ'}
-            </button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-lg font-bold text-red-600">
+                  {formatPrice(product.price)}
+                </span>
+                <span className="text-sm text-gray-500 line-through">
+                  {formatPrice(product.price * 1.25)}
+                </span>
+              </div>
+              
+              <button 
+                onClick={handleAddToCart}
+                disabled={isAdding || product.stock <= 0 || isInCart(product.id)}
+                className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+                  product.stock <= 0
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : isInCart(product.id)
+                    ? 'bg-green-600 text-white cursor-not-allowed'
+                    : isAdding
+                    ? 'bg-yellow-600 text-white cursor-not-allowed'
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
+              >
+                {product.stock <= 0 
+                  ? 'Hết hàng' 
+                  : isInCart(product.id) 
+                  ? 'Đã có trong giỏ' 
+                  : isAdding 
+                  ? 'Đang thêm...' 
+                  : 'Thêm vào giỏ'
+                }
+              </button>
+            </div>
           </div>
         </div>
       </Link>

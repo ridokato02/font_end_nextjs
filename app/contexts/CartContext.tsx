@@ -56,16 +56,33 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [items]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
+    // Kiểm tra stock trước khi thêm vào giỏ
+    if (product.stock <= 0) {
+      alert('Sản phẩm đã hết hàng!');
+      return;
+    }
+
     setItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
       
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantity;
+        // Kiểm tra tổng số lượng không vượt quá stock
+        if (newQuantity > product.stock) {
+          alert(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+          return prevItems;
+        }
         return prevItems.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       } else {
+        // Kiểm tra số lượng thêm vào không vượt quá stock
+        if (quantity > product.stock) {
+          alert(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+          return prevItems;
+        }
         return [...prevItems, {
           id: product.id,
           product,
@@ -86,13 +103,19 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       return;
     }
 
-    setItems(prevItems =>
-      prevItems.map(item =>
+    setItems(prevItems => {
+      const item = prevItems.find(item => item.id === productId);
+      if (item && quantity > item.product.stock) {
+        alert(`Chỉ còn ${item.product.stock} sản phẩm trong kho!`);
+        return prevItems;
+      }
+      
+      return prevItems.map(item =>
         item.id === productId
           ? { ...item, quantity }
           : item
-      )
-    );
+      );
+    });
   };
 
   const clearCart = () => {

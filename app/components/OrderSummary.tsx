@@ -14,6 +14,20 @@ export default function OrderSummary() {
     <div className="bg-white rounded-lg shadow-sm border p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Tóm tắt đơn hàng</h3>
       
+      {/* Stock Warning */}
+      {items.some(item => item.product.stock <= 5) && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <p className="text-sm text-yellow-800">
+              Một số sản phẩm sắp hết hàng. Vui lòng đặt hàng sớm để đảm bảo có sản phẩm.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Order Items */}
       <div className="space-y-4 mb-6">
         {items.map((item) => (
@@ -31,6 +45,15 @@ export default function OrderSummary() {
                 {item.product.name}
               </h4>
               <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
+              <p className={`text-xs ${
+                item.product.stock > 10 
+                  ? 'text-green-600' 
+                  : item.product.stock > 0 
+                  ? 'text-yellow-600' 
+                  : 'text-red-600'
+              }`}>
+                Còn {item.product.stock} sản phẩm
+              </p>
             </div>
             <div className="text-sm font-medium text-gray-900">
               {(item.price * item.quantity).toLocaleString('vi-VN')}₫

@@ -31,6 +31,15 @@ export default function CheckoutPage() {
     setIsLoading(true);
     
     try {
+      // Kiểm tra stock trước khi thanh toán
+      const outOfStockItems = items.filter(item => item.quantity > item.product.stock);
+      if (outOfStockItems.length > 0) {
+        const productNames = outOfStockItems.map(item => item.product.name).join(', ');
+        alert(`Một số sản phẩm đã hết hàng hoặc không đủ số lượng: ${productNames}. Vui lòng kiểm tra lại giỏ hàng.`);
+        setIsLoading(false);
+        return;
+      }
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       

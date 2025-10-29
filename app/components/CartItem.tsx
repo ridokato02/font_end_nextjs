@@ -45,9 +45,18 @@ export default function CartItem({ item }: CartItemProps) {
           <p className="text-sm text-gray-600 mt-1 line-clamp-2">
             {item.product.description}
           </p>
-          <div className="flex items-center mt-2">
+          <div className="flex items-center justify-between mt-2">
             <span className="text-lg font-bold text-red-600">
               {item.price.toLocaleString('vi-VN')}₫
+            </span>
+            <span className={`text-sm font-medium ${
+              item.product.stock > 10 
+                ? 'text-green-600' 
+                : item.product.stock > 0 
+                ? 'text-yellow-600' 
+                : 'text-red-600'
+            }`}>
+              Còn {item.product.stock} sản phẩm
             </span>
           </div>
         </div>
@@ -65,7 +74,12 @@ export default function CartItem({ item }: CartItemProps) {
           </span>
           <button
             onClick={() => handleQuantityChange(item.quantity + 1)}
-            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+            disabled={item.quantity >= item.product.stock}
+            className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center ${
+              item.quantity >= item.product.stock
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'hover:bg-gray-50'
+            }`}
           >
             +
           </button>

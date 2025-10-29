@@ -6,13 +6,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '../../types/product';
 import { productService } from '../../lib/products';
+import { useCart } from '../../contexts/CartContext';
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const { addToCart, isInCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -43,6 +46,28 @@ export default function ProductDetailPage() {
       return product.picture;
     }
     return [{ url: '/placeholder-product.jpg', alternativeText: product?.name || 'Product' }];
+  };
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+    
+    if (product.stock <= 0) {
+      alert('Sản phẩm đã hết hàng!');
+      return;
+    }
+
+    if (quantity > product.stock) {
+      alert(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+      return;
+    }
+
+    setIsAdding(true);
+    addToCart(product, quantity);
+    
+    // Show feedback
+    setTimeout(() => {
+      setIsAdding(false);
+    }, 1000);
   };
 
   if (loading) {
@@ -154,31 +179,90 @@ export default function ProductDetailPage() {
                 </p>
               </div>
 
+              {/* Stock Status */}
+              <div className="mb-4">
+                <span className={`text-sm font-medium ${
+                  product.stock > 10 
+                    ? 'text-green-600' 
+                    : product.stock > 0 
+                    ? 'text-yellow-600' 
+                    : 'text-red-600'
+                }`}>
+                  {product.stock > 10 
+                    ? `Còn hàng (${product.stock} sản phẩm)`
+                    : product.stock > 0 
+                    ? `Sắp hết hàng (${product.stock} sản phẩm)`
+                    : 'Hết hàng'
+                  }
+                </span>
+              </div>
+
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Số lượng</h3>
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
+                    disabled={quantity <= 1}
+                    className={`w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center ${
+                      quantity <= 1 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'hover:bg-gray-50'
+                    }`}
                   >
                     -
                   </button>
                   <span className="text-lg font-medium w-12 text-center">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
+                    disabled={quantity >= product.stock}
+                    className={`w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center ${
+                      quantity >= product.stock 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'hover:bg-gray-50'
+                    }`}
                   >
                     +
                   </button>
                 </div>
+                {quantity >= product.stock && product.stock > 0 && (
+                  <p className="text-sm text-red-600 mt-1">
+                    Đã đạt giới hạn số lượng có sẵn
+                  </p>
+                )}
               </div>
 
               <div className="flex space-x-4 mb-8">
-                <button className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-colors font-medium">
-                  Thêm vào giỏ hàng
+                <button 
+                  onClick={handleAddToCart}
+                  disabled={product.stock <= 0 || isAdding || isInCart(product.id)}
+                  className={`flex-1 py-3 px-6 rounded-lg transition-colors font-medium ${
+                    product.stock <= 0
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : isInCart(product.id)
+                      ? 'bg-green-600 text-white cursor-not-allowed'
+                      : isAdding
+                      ? 'bg-yellow-600 text-white cursor-not-allowed'
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
+                >
+                  {product.stock <= 0 
+                    ? 'Hết hàng' 
+                    : isInCart(product.id) 
+                    ? 'Đã có trong giỏ' 
+                    : isAdding 
+                    ? 'Đang thêm...' 
+                    : 'Thêm vào giỏ hàng'
+                  }
                 </button>
-                <button className="flex-1 bg-white text-red-600 border border-red-600 py-3 px-6 rounded-lg hover:bg-red-50 transition-colors font-medium">
-                  Mua ngay
+                <button 
+                  disabled={product.stock <= 0}
+                  className={`flex-1 py-3 px-6 rounded-lg transition-colors font-medium ${
+                    product.stock <= 0
+                      ? 'bg-gray-100 text-gray-400 border border-gray-300 cursor-not-allowed'
+                      : 'bg-white text-red-600 border border-red-600 hover:bg-red-50'
+                  }`}
+                >
+                  {product.stock <= 0 ? 'Hết hàng' : 'Mua ngay'}
                 </button>
               </div>
 
