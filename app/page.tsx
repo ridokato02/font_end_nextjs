@@ -5,6 +5,7 @@ import ProductCard from './components/ProductCard';
 import { Product } from './types/product';
 import { productService } from './lib/products';
 import Link from 'next/link';
+import IntroduceSection from './about/page';
 
 interface CategorySubItem {
   name: string;
@@ -715,10 +716,10 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-gray-800">SẢN PHẨM NỔI BẬT</h2>
-              <button className="text-red-600 hover:text-red-700 text-sm md:text-base font-medium flex items-center">
+              <Link href="/products" className="text-red-600 hover:text-red-700 text-sm md:text-base font-medium flex items-center">
                 Xem tất cả
                 <span className="ml-1">›</span>
-              </button>
+              </Link>
             </div>
 
             {loading ? (
@@ -734,6 +735,9 @@ export default function Home() {
             )}
           </div>
         </section>
+
+        {/* Introduce Section */}
+        <IntroduceSection />
       </main>
         </div>
       </div>
