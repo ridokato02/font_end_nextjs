@@ -21,7 +21,7 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       try {
         if (params.id) {
-          const response = await productService.getProductById(Number(params.id));
+          const response = await productService.getProductByDocumentId(params.id as string);
           setProduct(response.data);
         }
       } catch (error) {
@@ -203,7 +203,7 @@ export default function ProductDetailPage() {
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className={`w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center ${
+                    className={`w-10 h-10 border text-gray-900 border-gray-300 rounded-lg flex items-center justify-center ${
                       quantity <= 1 
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'hover:bg-gray-50'
@@ -211,11 +211,11 @@ export default function ProductDetailPage() {
                   >
                     -
                   </button>
-                  <span className="text-lg font-medium w-12 text-center">{quantity}</span>
+                  <span className="text-lg font-medium w-12 text-center text-gray-900">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     disabled={quantity >= product.stock}
-                    className={`w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center ${
+                    className={`w-10 h-10 border text-gray-900 border-gray-300 rounded-lg flex items-center justify-center ${
                       quantity >= product.stock 
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'hover:bg-gray-50'
