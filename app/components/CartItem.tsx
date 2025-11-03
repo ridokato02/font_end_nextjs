@@ -62,7 +62,7 @@ export default function CartItem({ item }: CartItemProps) {
         </div>
 
         {/* Quantity Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 text-gray-900">
           <button
             onClick={() => handleQuantityChange(item.quantity - 1)}
             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"

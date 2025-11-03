@@ -7,30 +7,8 @@ import { useCart } from '../contexts/CartContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
-
-  const categories = [
-    { name: 'Thực phẩm chức năng', icon: '🌿' },
-    { name: 'Collagen', icon: '💊' },
-    { name: 'Mỹ phẩm', icon: '💄' },
-    { name: 'Mẹ và Bé', icon: '👶' },
-    { name: 'Thời trang', icon: '👗' },
-    { name: 'Đồ gia dụng', icon: '🏠' },
-    { name: 'Nhà Cửa & Đời Sống', icon: '🏡' },
-    { name: 'Thực phẩm - Hàng tiêu dùng', icon: '🛒' },
-    { name: 'Thiết bị chăm sóc sức khỏe', icon: '🏥' },
-    { name: 'Đồ thể thao - Du lịch', icon: '⚽' },
-    { name: 'Sách truyện', icon: '📚' },
-    { name: 'Văn phòng phẩm', icon: '📝' },
-    { name: 'Thiết bị - Phụ kiện số', icon: '📱' },
-    { name: 'Đồng hồ', icon: '⌚' },
-    { name: 'Chăm sóc thú cưng', icon: '🐕' },
-    { name: 'Điện máy - Điện lạnh', icon: '❄️' },
-    { name: 'Điện thoại - Máy tính bảng', icon: '📱' },
-    { name: 'Thương hiệu nổi bật', icon: '⭐' }
-  ];
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -131,44 +109,6 @@ export default function Header() {
         {/* Category Menu Bar */}
         <div className="hidden lg:block border-t border-gray-200 relative">
           <div className="flex items-center h-12">
-            <div className="relative">
-              <button
-                onMouseEnter={() => setIsCategoryMenuOpen(true)}
-                onMouseLeave={() => setIsCategoryMenuOpen(false)}
-                className="flex items-center space-x-2 px-4 py-3 bg-red-600 text-white font-medium hover:bg-red-700 transition-colors h-full"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <span>Danh mục sản phẩm</span>
-              </button>
-              
-              {/* Category Dropdown */}
-              {isCategoryMenuOpen && (
-                <div
-                  onMouseEnter={() => setIsCategoryMenuOpen(true)}
-                  onMouseLeave={() => setIsCategoryMenuOpen(false)}
-                  className="absolute left-0 top-full bg-white shadow-lg border border-gray-200 w-64 max-h-[600px] overflow-y-auto z-50"
-                >
-                  <nav className="py-2">
-                    {categories.map((category, index) => (
-                      <Link
-                        key={index}
-                        href={`/products?category=${category.name}`}
-                        className="flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <span className="text-lg">{category.icon}</span>
-                          <span className="text-sm">{category.name}</span>
-                        </div>
-                        <span className="text-gray-400">›</span>
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
-              )}
-            </div>
-
             {/* Navigation Menu */}
             <nav className="flex items-center space-x-6 px-4">
               <Link href="/" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
@@ -186,36 +126,6 @@ export default function Header() {
             </nav>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link href="/" className="block px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded">
-                Trang chủ
-              </Link>
-              <Link href="/products" className="block px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded">
-                Sản phẩm
-              </Link>
-              <div className="px-3 py-2 text-gray-700 font-medium border-b border-gray-200">Danh mục</div>
-              {categories.slice(0, 6).map((category, index) => (
-                <Link
-                  key={index}
-                  href={`/products?category=${category.name}`}
-                  className="block px-6 py-2 text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 rounded"
-                >
-                  {category.icon} {category.name}
-                </Link>
-              ))}
-              <Link href="/about" className="block px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded">
-                Giới thiệu
-              </Link>
-              <Link href="/contact" className="block px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded">
-                Liên hệ
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
     </header>
   );

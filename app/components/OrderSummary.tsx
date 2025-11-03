@@ -66,12 +66,12 @@ export default function OrderSummary() {
       <div className="space-y-3 border-t pt-4">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Tạm tính ({totalItems} sản phẩm)</span>
-          <span className="font-medium">{totalPrice.toLocaleString('vi-VN')}₫</span>
+          <span className="font-medium text-gray-900">{totalPrice.toLocaleString('vi-VN')}₫</span>
         </div>
         
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Phí vận chuyển</span>
-          <span className="font-medium">
+          <span className="font-medium text-gray-900">
             {shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')}₫`}
           </span>
         </div>
@@ -84,7 +84,7 @@ export default function OrderSummary() {
         
         <div className="border-t pt-3">
           <div className="flex justify-between text-lg font-bold">
-            <span>Tổng cộng</span>
+            <span className="text-gray-900">Tổng cộng</span>
             <span className="text-red-600">{finalTotal.toLocaleString('vi-VN')}₫</span>
           </div>
         </div>
@@ -122,6 +122,12 @@ export default function OrderSummary() {
           <p>• Miễn phí vận chuyển cho đơn hàng từ 500.000₫</p>
           <p>• Hỗ trợ đổi trả trong 7 ngày</p>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <button className="bg-red-600 text-white w-full px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Đặt hàng
+        </button>
       </div>
     </div>
   );

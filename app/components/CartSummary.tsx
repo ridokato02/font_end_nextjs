@@ -17,12 +17,12 @@ export default function CartSummary() {
       <div className="space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Tạm tính ({totalItems} sản phẩm)</span>
-          <span className="font-medium">{totalPrice.toLocaleString('vi-VN')}₫</span>
+          <span className="font-medium text-gray-900">{totalPrice.toLocaleString('vi-VN')}₫</span>
         </div>
         
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Phí vận chuyển</span>
-          <span className="font-medium">
+          <span className="font-medium text-gray-900">
             {shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')}₫`}
           </span>
         </div>
@@ -35,7 +35,7 @@ export default function CartSummary() {
         
         <div className="border-t pt-3">
           <div className="flex justify-between text-lg font-bold">
-            <span>Tổng cộng</span>
+            <span className="text-gray-900">Tổng cộng</span>
             <span className="text-red-600">{finalTotal.toLocaleString('vi-VN')}₫</span>
           </div>
         </div>

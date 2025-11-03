@@ -93,7 +93,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Họ và tên *
             </label>
             <input
@@ -101,7 +101,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+              className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                 errors.fullName ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Nhập họ và tên"
@@ -112,7 +112,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Email *
             </label>
             <input
@@ -120,7 +120,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+              className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Nhập email"
@@ -131,7 +131,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Số điện thoại *
             </label>
             <input
@@ -139,7 +139,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+              className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                 errors.phone ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Nhập số điện thoại"
@@ -157,7 +157,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Địa chỉ chi tiết *
             </label>
             <input
@@ -165,7 +165,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+              className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                 errors.address ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Số nhà, tên đường"
@@ -177,14 +177,14 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Tỉnh/Thành phố *
               </label>
               <select
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                   errors.city ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
@@ -201,7 +201,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Quận/Huyện *
               </label>
               <input
@@ -209,7 +209,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                 name="district"
                 value={formData.district}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                   errors.district ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="Nhập quận/huyện"
@@ -220,7 +220,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Phường/Xã *
               </label>
               <input
@@ -228,7 +228,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                 name="ward"
                 value={formData.ward}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                   errors.ward ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="Nhập phường/xã"
@@ -240,7 +240,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               Ghi chú đơn hàng
             </label>
             <textarea
@@ -248,7 +248,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               value={formData.note}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-3 py-2 border text-gray-900 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               placeholder="Ghi chú thêm cho đơn hàng (tùy chọn)"
             />
           </div>
@@ -260,7 +260,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Phương thức thanh toán</h3>
         
         <div className="space-y-3">
-          <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center p-3 border text-gray-900 rounded-lg cursor-pointer hover:bg-gray-50">
             <input
               type="radio"
               name="paymentMethod"
@@ -280,7 +280,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             </div>
           </label>
 
-          <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center p-3 border text-gray-900 rounded-lg cursor-pointer hover:bg-gray-50">
             <input
               type="radio"
               name="paymentMethod"
@@ -300,7 +300,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             </div>
           </label>
 
-          <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center p-3 border text-gray-900 rounded-lg cursor-pointer hover:bg-gray-50">
             <input
               type="radio"
               name="paymentMethod"
@@ -320,7 +320,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             </div>
           </label>
 
-          <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center p-3 border text-gray-900 rounded-lg cursor-pointer hover:bg-gray-50">
             <input
               type="radio"
               name="paymentMethod"
@@ -358,16 +358,6 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
         </label>
       </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Đang xử lý...' : 'Đặt hàng'}
-        </button>
-      </div>
     </form>
   );
 }
