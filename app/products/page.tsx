@@ -4,40 +4,66 @@ import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
 import { productService } from '../lib/products';
+import { categorieService } from '../lib/categories';
+import { Categorie } from '../types/categorie';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'kích hoạt' | 'ngừng kinh doanh'>('all');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const response = await productService.getAllProducts();
-        setProducts(response.data);
-        setFilteredProducts(response.data);
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          productService.getAllProducts(),
+          categorieService.getAllCategories()
+        ]);
+        setProducts(productsResponse.data);
+        setFilteredProducts(productsResponse.data);
+        setCategories(categoriesResponse.data);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter(product =>
+    let filtered = products;
+
+    // Filter by search query
+    if (searchQuery.trim() !== '') {
+      filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (product.description_product && product.description_product.toLowerCase().includes(searchQuery.toLowerCase()))
       );
-      setFilteredProducts(filtered);
     }
-  }, [searchQuery, products]);
+
+    // Filter by category
+    if (selectedCategory !== null) {
+      filtered = filtered.filter(product => {
+        if (typeof product.category_id === 'object' && product.category_id) {
+          return product.category_id.id === selectedCategory;
+        }
+        return product.category_id === selectedCategory;
+      });
+    }
+
+    // Filter by status
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(product => product.status_product === selectedStatus);
+    }
+
+    setFilteredProducts(filtered);
+  }, [searchQuery, products, selectedCategory, selectedStatus]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +96,7 @@ export default function ProductsPage() {
           </div>
 
           {/* Search and Filter */}
-          <div className="mb-8">
+          <div className="mb-8 space-y-4">
             <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
               <div className="flex gap-4">
                 <input
@@ -78,16 +104,57 @@ export default function ProductsPage() {
                   placeholder="Tìm kiếm sản phẩm..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
                 <button
                   type="submit"
-                  className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  className="bg-red-600 text-black px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
                   Tìm kiếm
                 </button>
               </div>
             </form>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4 justify-center">
+              {/* Category Filter */}
+              <select
+                value={selectedCategory || ''}
+                onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="">Tất cả danh mục</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value as typeof selectedStatus)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="kích hoạt">Đang kích hoạt</option>
+                <option value="ngừng kinh doanh">Ngừng kinh doanh</option>
+              </select>
+
+              {/* Clear Filters */}
+              {(selectedCategory !== null || selectedStatus !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSelectedStatus('all');
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Products Grid */}

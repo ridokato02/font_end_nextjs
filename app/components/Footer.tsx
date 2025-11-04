@@ -91,11 +91,7 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4 text-sm lg:text-base">Về Chiaki</h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Giới thiệu
-                </Link>
-              </li>
+              {/* Giới thiệu removed */}
               <li>
                 <Link href="/products" className="text-gray-300 hover:text-white transition-colors text-sm">
                   Sản phẩm

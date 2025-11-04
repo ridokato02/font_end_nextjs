@@ -1,5 +1,6 @@
 import { apiClient } from './api';
 import { Product, ProductResponse } from '../types/product';
+import { Categorie } from '../types/categorie';
 
 // Helper function để transform Strapi response format sang Product format
 function transformStrapiProduct(strapiProduct: any): Product {
@@ -19,14 +20,30 @@ function transformStrapiProduct(strapiProduct: any): Product {
     ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
     : 'http://localhost:1337';
 
-  // Transform picture array từ Strapi format
-  let pictures: { id: number; url: string; alternativeText?: string }[] = [];
+  // Helper để transform category nếu cần
+  const transformCategory = (catData: any): Categorie | number | null => {
+    if (!catData) return null;
+    if (typeof catData === 'number') return catData;
+    if (catData.id && catData.name) return catData as Categorie;
+    if (catData.attributes) {
+      return {
+        id: catData.id,
+        name: catData.attributes.name || '',
+        slug: catData.attributes.slug || '',
+        status_categorie: catData.attributes.status_categorie || 'Active'
+      } as Categorie;
+    }
+    return catData as Categorie;
+  };
+
+  // Transform image_url array (multiple media)
+  let images: { id: number; url: string; alternativeText?: string }[] = [];
   
-  if (attributes.picture) {
-    if (attributes.picture.data) {
-      const pictureData = attributes.picture.data;
-      if (Array.isArray(pictureData)) {
-        pictures = pictureData.map((img: any) => {
+  if (attributes.image_url) {
+    if (attributes.image_url.data) {
+      const imageData = attributes.image_url.data;
+      if (Array.isArray(imageData)) {
+        images = imageData.map((img: any) => {
           const imgAttrs = img.attributes || {};
           const url = imgAttrs.url || 
                      imgAttrs.formats?.large?.url || 
@@ -40,37 +57,37 @@ function transformStrapiProduct(strapiProduct: any): Product {
           };
         });
       } else {
-        // Single image object
-        const imgAttrs = pictureData.attributes || {};
+        const imgAttrs = imageData.attributes || {};
         const url = imgAttrs.url || 
                    imgAttrs.formats?.large?.url || 
                    imgAttrs.formats?.medium?.url || 
                    imgAttrs.formats?.small?.url || 
                    '';
-        pictures = [{
-          id: pictureData.id,
+        images = [{
+          id: imageData.id,
           url: url.startsWith('http') ? url : `${apiBaseUrl}${url}`,
           alternativeText: imgAttrs.alternativeText || imgAttrs.caption || imgAttrs.name || ''
         }];
       }
-    } else if (Array.isArray(attributes.picture)) {
-      // Handle direct array format
-      pictures = attributes.picture.map((pic: any) => ({
-        id: pic.id || 0,
-        url: pic.url?.startsWith('http') ? pic.url : `${apiBaseUrl}${pic.url || ''}`,
-        alternativeText: pic.alternativeText || pic.caption || ''
-      }));
     }
   }
 
   return {
     id: data.id,
     documentId: data.documentId || attributes.documentId,
+    category_id: attributes.category_id?.data 
+      ? transformCategory(attributes.category_id.data) 
+      : attributes.category_id || null,
     name: attributes.name || '',
+    slug: attributes.slug || '',
+    description_product: attributes.description_product || '',
     price: attributes.price ? Number(attributes.price) : 0,
-    description: attributes.description || '',
-    stock: attributes.stock || 0,
-    picture: pictures,
+    discount: attributes.discount ? Number(attributes.discount) : 0,
+    image_url: images,
+    quantity: attributes.quantity ? Number(attributes.quantity) : 0,
+    sold: attributes.sold ? Number(attributes.sold) : 0,
+    status_product: attributes.status_product || 'kích hoạt',
+    featured: attributes.featured || 'không',
     publishedAt: attributes.publishedAt || data.publishedAt || '',
     createdAt: attributes.createdAt || data.createdAt || '',
     updatedAt: attributes.updatedAt || data.updatedAt || ''
@@ -96,6 +113,9 @@ function transformStrapiProductList(strapiResponse: any): ProductResponse {
   };
 }
 
+// Export transform function để sử dụng trong categories.ts
+export { transformStrapiProduct };
+
 export const productService = {
   // Lấy danh sách tất cả sản phẩm
   async getAllProducts(): Promise<ProductResponse> {
@@ -104,33 +124,50 @@ export const productService = {
   },
 
   // Lấy sản phẩm theo ID
-  async getProductByDocumentId(documentOrId: string): Promise<{ data: Product }> {
-    // Try direct findOne by path param
-    try {
-      const response = await apiClient.get<any>(`/api/products/${documentOrId}?populate=*`);
-      return { data: transformStrapiProduct(response) };
-    } catch (e1) {
-      // Fallback 1: try by documentId filter (string UUID-like)
+  async getProductById(id: string | number): Promise<{ data: Product }> {
+    // Try filter by id first (most reliable)
+    const asNum = Number(id);
+    if (!Number.isNaN(asNum)) {
       try {
-        const byDoc = await apiClient.get<any>(`/api/products?filters[documentId][$eq]=${encodeURIComponent(documentOrId)}&populate=*`);
-        if (byDoc?.data && Array.isArray(byDoc.data) && byDoc.data.length > 0) {
-          return { data: transformStrapiProduct({ data: byDoc.data[0] }) };
+        const byId = await apiClient.get<any>(`/api/products?filters[id][$eq]=${asNum}&populate=*`);
+        if (byId?.data && Array.isArray(byId.data) && byId.data.length > 0) {
+          return { data: transformStrapiProduct({ data: byId.data[0] }) };
         }
-      } catch {}
-
-      // Fallback 2: if numeric, try filter by id
-      const asNum = Number(documentOrId);
-      if (!Number.isNaN(asNum)) {
-        try {
-          const byId = await apiClient.get<any>(`/api/products?filters[id][$eq]=${asNum}&populate=*`);
-          if (byId?.data && Array.isArray(byId.data) && byId.data.length > 0) {
-            return { data: transformStrapiProduct({ data: byId.data[0] }) };
-          }
-        } catch {}
+      } catch (error) {
+        console.warn(`⚠️ Filter by id failed, trying other methods:`, error);
       }
+    }
 
-      console.error(`Product not found by id/documentId: ${documentOrId}`);
-      throw e1;
+    // Fallback 1: try by documentId filter (string UUID-like)
+    try {
+      const byDoc = await apiClient.get<any>(`/api/products?filters[documentId][$eq]=${encodeURIComponent(id)}&populate=*`);
+      if (byDoc?.data && Array.isArray(byDoc.data) && byDoc.data.length > 0) {
+        return { data: transformStrapiProduct({ data: byDoc.data[0] }) };
+      }
+    } catch (error) {
+      console.warn(`⚠️ Filter by documentId failed:`, error);
+    }
+
+    // Fallback 2: Try direct findOne by path param
+    try {
+      const response = await apiClient.get<any>(`/api/products/${id}?populate=*`);
+      return { data: transformStrapiProduct(response) };
+    } catch (error) {
+      console.error(`❌ Product not found by id/documentId: ${id}`, error);
+      throw new Error(`Product with id ${id} not found`);
+    }
+  },
+
+  // Lấy sản phẩm theo slug
+  async getProductBySlug(slug: string): Promise<{ data: Product | null }> {
+    try {
+      const response = await apiClient.get<any>(`/api/products?filters[slug][$eq]=${encodeURIComponent(slug)}&populate=*`);
+      if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
+        return { data: transformStrapiProduct({ data: response.data[0] }) };
+      }
+      return { data: null };
+    } catch (error) {
+      return { data: null };
     }
   },
 
@@ -151,16 +188,47 @@ export const productService = {
   },
 
   // Xóa sản phẩm
-  async deleteProduct(id: number): Promise<{ data: Product }> {
-    const response = await apiClient.delete<any>(`/api/products/${id}`);
-    return {
-      data: transformStrapiProduct(response)
-    };
+  async deleteProduct(id: number): Promise<void> {
+    await apiClient.delete<any>(`/api/products/${id}`);
   },
 
   // Tìm kiếm sản phẩm
   async searchProducts(query: string): Promise<ProductResponse> {
-    const response = await apiClient.get<any>(`/api/products?filters[name][$containsi]=${query}&populate=*`);
+    const response = await apiClient.get<any>(`/api/products?filters[name][$containsi]=${encodeURIComponent(query)}&populate=*`);
     return transformStrapiProductList(response);
+  },
+
+  // Lấy sản phẩm theo category
+  async getProductsByCategory(categoryId: number): Promise<ProductResponse> {
+    const response = await apiClient.get<any>(`/api/products?filters[category_id][id][$eq]=${categoryId}&populate=*`);
+    return transformStrapiProductList(response);
+  },
+
+  // Lấy sản phẩm theo status
+  async getProductsByStatus(status: 'ngừng kinh doanh' | 'kích hoạt'): Promise<ProductResponse> {
+    const response = await apiClient.get<any>(`/api/products?filters[status_product][$eq]=${encodeURIComponent(status)}&populate=*`);
+    return transformStrapiProductList(response);
+  },
+
+  // Lấy sản phẩm featured
+  async getFeaturedProducts(): Promise<ProductResponse> {
+    const response = await apiClient.get<any>('/api/products?filters[featured][$eq]=có&populate=*');
+    return transformStrapiProductList(response);
+  },
+
+  // Lấy sản phẩm đang kích hoạt
+  async getActiveProducts(): Promise<ProductResponse> {
+    return this.getProductsByStatus('kích hoạt');
   }
 };
+
+// Helper function để lấy images từ Product (trực tiếp từ image_url)
+export async function getProductImages(productId: number): Promise<{ id: number; url: string; alternativeText?: string }[]> {
+  try {
+    const response = await productService.getProductById(productId);
+    return response.data.image_url || [];
+  } catch (error) {
+    console.error('Error fetching product images:', error);
+    return [];
+  }
+}

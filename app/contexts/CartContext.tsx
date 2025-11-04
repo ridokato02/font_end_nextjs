@@ -56,8 +56,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [items]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
-    // Kiểm tra stock trước khi thêm vào giỏ
-    if (product.stock <= 0) {
+    // Kiểm tra tồn kho trước khi thêm vào giỏ
+    if (product.quantity <= 0) {
       alert('Sản phẩm đã hết hàng!');
       return;
     }
@@ -67,9 +67,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
-        // Kiểm tra tổng số lượng không vượt quá stock
-        if (newQuantity > product.stock) {
-          alert(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+        // Kiểm tra tổng số lượng không vượt quá tồn kho
+        if (newQuantity > product.quantity) {
+          alert(`Chỉ còn ${product.quantity} sản phẩm trong kho!`);
           return prevItems;
         }
         return prevItems.map(item =>
@@ -78,9 +78,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
             : item
         );
       } else {
-        // Kiểm tra số lượng thêm vào không vượt quá stock
-        if (quantity > product.stock) {
-          alert(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+        // Kiểm tra số lượng thêm vào không vượt quá tồn kho
+        if (quantity > product.quantity) {
+          alert(`Chỉ còn ${product.quantity} sản phẩm trong kho!`);
           return prevItems;
         }
         return [...prevItems, {
@@ -105,8 +105,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
     setItems(prevItems => {
       const item = prevItems.find(item => item.id === productId);
-      if (item && quantity > item.product.stock) {
-        alert(`Chỉ còn ${item.product.stock} sản phẩm trong kho!`);
+      if (item && quantity > item.product.quantity) {
+        alert(`Chỉ còn ${item.product.quantity} sản phẩm trong kho!`);
         return prevItems;
       }
       

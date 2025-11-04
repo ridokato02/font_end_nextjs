@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { Product } from './types/product';
 import { productService } from './lib/products';
+import { categorieService } from './lib/categories';
+import { Categorie } from './types/categorie';
 import Link from 'next/link';
-import IntroduceSection from './about/page';
 
 interface CategorySubItem {
   name: string;
@@ -26,6 +27,7 @@ interface Category {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Categorie[]>([]);
   const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -42,6 +44,23 @@ export default function Home() {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await categorieService.getAllCategories();
+        // Lọc chỉ lấy categories có status Active và không có parent (root categories)
+        const rootCategories = response.data.filter(
+          (cat) => cat.status_categorie === 'Active' && !cat.categorie_id
+        );
+        setCategories(rootCategories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Cleanup timeout on unmount
@@ -449,26 +468,40 @@ export default function Home() {
     }
   ];
 
-  const categoryGrid = [
-    { name: 'Thực phẩm chức năng', icon: '🌿' },
-    { name: 'Mẹ và Bé', icon: '👶' },
-    { name: 'Mỹ phẩm', icon: '💄' },
-    { name: 'Thời trang', icon: '👗' },
-    { name: 'Đồ gia dụng nhà bếp', icon: '🍳' },
-    { name: 'Thiết bị chăm sóc sức khỏe', icon: '🏥' },
-    { name: 'Đồ thể thao - Du lịch', icon: '⚽' },
-    { name: 'Thực phẩm - Hàng tiêu dùng', icon: '🛒' },
-    { name: 'Voucher khuyến mại', icon: '🎫' },
-    { name: 'Nhà Cửa & Đời Sống', icon: '🏡' },
-    { name: 'Chăm sóc thú cưng', icon: '🐕' },
-    { name: 'Thiết bị - Phụ kiện số', icon: '📱' },
-    { name: 'Điện máy - Điện lạnh', icon: '❄️' },
-    { name: 'Văn phòng phẩm', icon: '📝' },
-    { name: 'Ô tô, xe máy, xe đạp', icon: '🚗' },
-    { name: 'Dụng cụ và thiết bị tiện ích', icon: '🔧' },
-    { name: 'Ngành hàng khác', icon: '📦' },
-    { name: 'Chăm sóc cá nhân', icon: '🧴' }
-  ];
+  // Helper function để map icon dựa trên tên category
+  const getCategoryIcon = (categoryName: string): string => {
+    const iconMap: { [key: string]: string } = {
+      'Thực phẩm chức năng': '🌿',
+      'Mẹ và Bé': '👶',
+      'Mỹ phẩm': '💄',
+      'Thời trang': '👗',
+      'Đồ gia dụng nhà bếp': '🍳',
+      'Thiết bị chăm sóc sức khỏe': '🏥',
+      'Đồ thể thao - Du lịch': '⚽',
+      'Thực phẩm - Hàng tiêu dùng': '🛒',
+      'Voucher khuyến mại': '🎫',
+      'Nhà Cửa & Đời Sống': '🏡',
+      'Chăm sóc thú cưng': '🐕',
+      'Thiết bị - Phụ kiện số': '📱',
+      'Điện máy - Điện lạnh': '❄️',
+      'Văn phòng phẩm': '📝',
+      'Ô tô, xe máy, xe đạp': '🚗',
+      'Dụng cụ và thiết bị tiện ích': '🔧',
+      'Ngành hàng khác': '📦',
+      'Chăm sóc cá nhân': '🧴'
+    };
+    return iconMap[categoryName] || '📦';
+  };
+
+  // Map categories từ backend sang format categoryGrid
+  const categoryGrid = categories.map((category) => ({
+    name: category.name,
+    icon: category.image_url_categorie && category.image_url_categorie.length > 0
+      ? category.image_url_categorie[0].url // Sử dụng ảnh từ backend nếu có
+      : getCategoryIcon(category.name), // Fallback về emoji icon
+    id: category.id,
+    slug: category.slug
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -668,12 +701,24 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-4">
               {categoryGrid.map((category, index) => (
-                <div key={index} className="text-center p-4 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 text-xl sm:text-2xl group-hover:bg-red-50 transition-colors">
-                    {category.icon}
+                <Link 
+                  key={category.id || index} 
+                  href={category.slug ? `/categories/${category.slug}` : '#'}
+                  className="text-center p-4 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group"
+                >
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 text-xl sm:text-2xl group-hover:bg-red-50 transition-colors overflow-hidden">
+                    {category.icon?.startsWith('http') ? (
+                      <img 
+                        src={category.icon} 
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{category.icon}</span>
+                    )}
                   </div>
                   <p className="text-xs sm:text-sm text-gray-700 group-hover:text-red-600 transition-colors">{category.name}</p>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -736,8 +781,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Introduce Section */}
-        <IntroduceSection />
+        {/* Introduce Section removed */}
       </main>
         </div>
       </div>

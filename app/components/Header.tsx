@@ -117,9 +117,7 @@ export default function Header() {
               <Link href="/products" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
                 Sản phẩm
               </Link>
-              <Link href="/about" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
-                Giới thiệu
-              </Link>
+              {/* Giới thiệu removed */}
               <Link href="/contact" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
                 Liên hệ
               </Link>
