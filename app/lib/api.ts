@@ -20,12 +20,21 @@ export class ApiClient {
       }
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+    const url = `${this.baseUrl}${endpoint}`;
+    const response = await fetch(url, {
       headers,
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let message = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        const strapiMsg = errorData?.error?.message || errorData?.message;
+        if (strapiMsg) message = `${message} - ${strapiMsg}`;
+      } catch {}
+      // eslint-disable-next-line no-console
+      console.error('GET request failed:', { url, status: response.status });
+      throw new Error(message);
     }
     
     return response.json();
@@ -79,7 +88,14 @@ export class ApiClient {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let message = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        const strapiMsg = errorData?.error?.message || errorData?.message;
+        if (strapiMsg) message = `${message} - ${strapiMsg}`;
+      } catch {}
+      console.error('PUT request failed:', { url: `${this.baseUrl}${endpoint}`, status: response.status, data });
+      throw new Error(message);
     }
     
     return response.json();

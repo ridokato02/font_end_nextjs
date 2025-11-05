@@ -17,6 +17,14 @@ export interface User {
   blocked: boolean;
   createdAt: string;
   updatedAt: string;
+  // Shipping/contact fields from backend User
+  // Backend uses 'address_line' not 'address'
+  address_line?: string;
+  city?: string;
+  ward?: string; // Backend has ward field
+  country?: string;
+  postal_code?: string;
+  phone_number?: number | string;
 }
 
 export interface AuthResponse {

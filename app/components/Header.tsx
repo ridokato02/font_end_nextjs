@@ -13,18 +13,18 @@ export default function Header() {
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       {/* Top Header */}
-      <div className="bg-red-600 text-white py-2 hidden md:block">
+      <div className="bg-[#F8F8F8] text-gray-600 py-2 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between items-center text-xs">
             <div className="flex items-center space-x-4">
-              <span>📞 Hotline: 1900 1234</span>
-              <span>|</span>
-              <span>🚚 Miễn phí vận chuyển cho đơn hàng trên 300.000đ</span>
+              <span>Tải ứng dụng Chiaki</span>
+              <span className="text-gray-300">|</span>
+              <span>Chăm sóc khách hàng</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/help" className="hover:underline">Hỗ trợ</Link>
-              <span>|</span>
-              <Link href="/track" className="hover:underline">Tra cứu đơn hàng</Link>
+              <Link href="/help" className="hover:text-[#E02020]">Tra cứu đơn hàng</Link>
+              <span className="text-gray-300">|</span>
+              <Link href="/track" className="hover:text-[#E02020]">Đăng ký bán hàng</Link>
             </div>
           </div>
         </div>
@@ -36,7 +36,7 @@ export default function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="text-2xl lg:text-3xl font-bold text-red-600">
+              <div className="text-4xl font-bold text-[#E02020]">
                 Chiaki
               </div>
             </Link>
@@ -47,10 +47,10 @@ export default function Header() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Tìm kiếm sản phẩm, thương hiệu..."
-                className="w-full px-4 py-2.5 lg:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm lg:text-base"
+                placeholder="Tìm kiếm sản phẩm..."
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E02020] focus:border-[#E02020] text-sm"
               />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-600 text-white px-4 py-1.5 lg:py-2 rounded hover:bg-red-700 transition-colors">
+              <button className="absolute right-0 top-0 h-full bg-[#E02020] text-white px-4 rounded-r-md hover:bg-red-700 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -59,17 +59,17 @@ export default function Header() {
           </div>
 
           {/* Cart and User */}
-          <div className="flex items-center space-x-3 lg:space-x-4">
-            <Link href="/cart" className="relative text-gray-700 hover:text-red-600 transition-colors">
-              <svg className="w-6 h-6 lg:w-7 lg:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l2.5 5M17 13h-4.5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+          <div className="flex items-center space-x-4">
+            <Link href="/cart" className="relative flex items-center space-x-2 text-gray-700 hover:text-[#E02020] transition-colors">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
               </svg>
+              <span className="text-sm">Giỏ hàng</span>
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                <span className="absolute -top-2 -right-2 bg-[#E02020] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                   {totalItems}
                 </span>
               )}
-              <span className="hidden lg:block text-xs text-gray-600 mt-1">Giỏ hàng</span>
             </Link>
             
             {isAuthenticated ? (
@@ -80,23 +80,22 @@ export default function Header() {
                 </div>
                 <button 
                   onClick={logout}
-                  className="text-gray-700 hover:text-red-600 text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                  className="text-gray-700 hover:text-[#E02020] text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors"
                 >
                   Đăng xuất
                 </button>
               </div>
             ) : (
-              <Link 
-                href="/login" 
-                className="bg-red-600 text-white px-3 lg:px-4 py-1.5 lg:py-2 rounded-md hover:bg-red-700 transition-colors text-sm lg:text-base font-medium"
-              >
-                Đăng nhập
-              </Link>
+               <div className="hidden lg:flex items-center space-x-1">
+                 <Link href="/login" className="text-sm text-gray-700 hover:text-[#E02020] transition-colors">Đăng nhập</Link>
+                 <span className="text-gray-300">/</span>
+                 <Link href="/register" className="text-sm text-gray-700 hover:text-[#E02020] transition-colors">Đăng ký</Link>
+               </div>
             )}
 
             {/* Mobile menu button */}
             <button
-              className="lg:hidden text-gray-700 hover:text-red-600"
+              className="lg:hidden text-gray-700 hover:text-[#E02020]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,16 +109,18 @@ export default function Header() {
         <div className="hidden lg:block border-t border-gray-200 relative">
           <div className="flex items-center h-12">
             {/* Navigation Menu */}
-            <nav className="flex items-center space-x-6 px-4">
-              <Link href="/" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
-                Trang chủ
+            <nav className="flex items-center space-x-8">
+              <Link href="/" className="flex items-center space-x-2 text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
+                <span>Trang chủ</span>
               </Link>
-              <Link href="/products" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
+              <Link href="/products" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
                 Sản phẩm
               </Link>
-              {/* Giới thiệu removed */}
-              <Link href="/contact" className="text-gray-700 hover:text-red-600 font-medium text-sm transition-colors">
-                Liên hệ
+              <Link href="/contact" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
+                Tin tức
+              </Link>
+              <Link href="/orders" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
+                Đơn hàng
               </Link>
             </nav>
           </div>

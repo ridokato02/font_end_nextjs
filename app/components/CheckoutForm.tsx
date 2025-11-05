@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface CheckoutFormProps {
   onSubmit: (formData: CheckoutFormData) => void;
   isLoading?: boolean;
+  formId?: string;
 }
 
 export interface CheckoutFormData {
@@ -17,28 +18,32 @@ export interface CheckoutFormData {
   // Shipping Information
   address: string;
   city: string;
-  district: string;
   ward: string;
   note?: string;
+  country?: string;
+  postal_code?: string;
   
   // Payment Information
-  paymentMethod: 'cod' | 'bank_transfer' | 'momo' | 'zalopay';
+  paymentMethod: 'cod' | 'credit_card' | 'paypal' | 'bank_transfer' | 'momo' | 'vnpay';
   
   // Additional
   receiveNewsletter: boolean;
 }
 
-export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps) {
+export default function CheckoutForm({ onSubmit, isLoading = false, formId }: CheckoutFormProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState<CheckoutFormData>({
     fullName: user?.username || '',
     email: user?.email || '',
-    phone: '',
-    address: '',
-    city: '',
-    district: '',
-    ward: '',
+    phone: (user?.phone_number ? String(user.phone_number) : ''),
+    // Backend uses 'address_line' not 'address'
+    address: user?.address_line || '',
+    city: user?.city || '',
+    // Backend User has 'ward' field
+    ward: user?.ward || '',
     note: '',
+    country: user?.country || '',
+    postal_code: user?.postal_code || '',
     paymentMethod: 'cod',
     receiveNewsletter: false,
   });
@@ -71,7 +76,6 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
     else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ''))) newErrors.phone = 'Số điện thoại không hợp lệ';
     if (!formData.address.trim()) newErrors.address = 'Địa chỉ là bắt buộc';
     if (!formData.city.trim()) newErrors.city = 'Tỉnh/Thành phố là bắt buộc';
-    if (!formData.district.trim()) newErrors.district = 'Quận/Huyện là bắt buộc';
     if (!formData.ward.trim()) newErrors.ward = 'Phường/Xã là bắt buộc';
 
     setErrors(newErrors);
@@ -86,7 +90,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-6">
       {/* Customer Information */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin khách hàng</h3>
@@ -180,42 +184,18 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Tỉnh/Thành phố *
               </label>
-              <select
+              <input
+                type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
                   errors.city ? 'border-red-500' : 'border-gray-300'
                 }`}
-              >
-                <option value="">Chọn tỉnh/thành phố</option>
-                <option value="hanoi">Hà Nội</option>
-                <option value="hcm">TP. Hồ Chí Minh</option>
-                <option value="danang">Đà Nẵng</option>
-                <option value="haiphong">Hải Phòng</option>
-                <option value="cantho">Cần Thơ</option>
-              </select>
+                placeholder="Ví dụ: TP. Hồ Chí Minh"
+              />
               {errors.city && (
                 <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Quận/Huyện *
-              </label>
-              <input
-                type="text"
-                name="district"
-                value={formData.district}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  errors.district ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Nhập quận/huyện"
-              />
-              {errors.district && (
-                <p className="text-red-500 text-sm mt-1">{errors.district}</p>
               )}
             </div>
 
@@ -236,6 +216,35 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
               {errors.ward && (
                 <p className="text-red-500 text-sm mt-1">{errors.ward}</p>
               )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Quốc gia
+              </label>
+              <input
+                type="text"
+                name="country"
+                value={formData.country || ''}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 border-gray-300"
+                placeholder="Việt Nam"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Mã bưu chính
+              </label>
+              <input
+                type="text"
+                name="postal_code"
+                value={formData.postal_code || ''}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 border-gray-300"
+                placeholder="700000"
+              />
             </div>
           </div>
 
@@ -324,8 +333,8 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             <input
               type="radio"
               name="paymentMethod"
-              value="zalopay"
-              checked={formData.paymentMethod === 'zalopay'}
+              value="vnpay"
+              checked={formData.paymentMethod === 'vnpay'}
               onChange={handleInputChange}
               className="mr-3"
             />
@@ -334,8 +343,8 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                 <span className="text-yellow-600 font-bold">💳</span>
               </div>
               <div>
-                <div className="font-medium">ZaloPay</div>
-                <div className="text-sm text-gray-500">Thanh toán qua ZaloPay</div>
+                <div className="font-medium">VNPay</div>
+                <div className="text-sm text-gray-500">Thanh toán qua VNPay</div>
               </div>
             </div>
           </label>

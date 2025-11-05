@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProductCard from '../components/ProductCard';
 import { Product } from '../types/product';
 import { productService } from '../lib/products';
@@ -15,6 +16,7 @@ export default function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'kích hoạt' | 'ngừng kinh doanh'>('all');
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +37,19 @@ export default function ProductsPage() {
 
     fetchData();
   }, []);
+
+  // Read category from URL query and set initial filter
+  useEffect(() => {
+    const categoryFromQuery = searchParams?.get('category');
+    if (categoryFromQuery) {
+      const asNumber = Number(categoryFromQuery);
+      if (!Number.isNaN(asNumber)) {
+        setSelectedCategory(asNumber);
+      }
+    }
+    // We only want to set it once on mount or when URL changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     let filtered = products;
@@ -88,7 +103,11 @@ export default function ProductsPage() {
           {/* Page Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Tất cả sản phẩm
+              {selectedCategory
+                ? `Sản phẩm theo danh mục ${
+                    categories.find((c) => c.id === selectedCategory)?.name || ''
+                  }`
+                : 'Tất cả sản phẩm'}
             </h1>
             <p className="text-lg text-gray-600">
               Khám phá bộ sưu tập sản phẩm đa dạng của chúng tôi

@@ -13,10 +13,10 @@ export interface Cart {
 export interface CartItem {
   id: number;
   documentId?: string;
-  cart_id?: Cart | number | null;
+  cart?: Cart | number | null; // Backend uses 'cart' not 'cart_id' - manyToOne relation
   product_id?: Product | number | null;
   quantity: number;
-  price_cart: number;
+  price_cart: number; // BigInteger in backend
   publishedAt?: string;
   createdAt?: string;
   updatedAt?: string;

@@ -6,11 +6,15 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import CheckoutForm, { CheckoutFormData } from '../components/CheckoutForm';
 import OrderSummary from '../components/OrderSummary';
+import { orderService } from '../lib/orders';
+import { paymentService } from '../lib/payments';
+import { authService } from '../lib/auth';
+import { PaymentMethod } from '../types/payment';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect to login if not authenticated
@@ -40,20 +44,69 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Here you would typically send the order to your backend
-      console.log('Order submitted:', {
-        ...formData,
-        items: items,
-        totalAmount: items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      if (!user) {
+        alert('Bạn cần đăng nhập để đặt hàng.');
+        router.push('/login?redirect=/checkout');
+        return;
+      }
+
+      // Tính tổng tiền với giá đã giảm (nếu có)
+      const lineTotal = items.reduce((sum, item) => {
+        const effectivePrice = Math.max(0, (item.product.price - (item.product.discount || 0)));
+        return sum + effectivePrice * item.quantity;
+      }, 0);
+
+      // 0) Cập nhật thông tin user từ form (lưu vào backend)
+      // Map form data sang backend User fields
+      await authService.updateUser(user.id, {
+        username: formData.fullName,
+        email: formData.email,
+        phone_number: formData.phone ? Number(formData.phone.replace(/\s/g, '')) : undefined,
+        address_line: formData.address, // Backend uses 'address_line' not 'address'
+        city: formData.city,
+        ward: formData.ward, // Backend has 'ward' field
+        country: formData.country || undefined,
+        postal_code: formData.postal_code || undefined,
       });
 
-      // Clear cart after successful order
+      // 1) Tạo order trước (gắn user hiện tại)
+      // Order có payment_ids (oneToMany) - sẽ thêm payment ID sau khi tạo payment
+      const order = await orderService.createOrder({
+        users_id: user.id,
+        status_order: 'đang chờ xử lý',
+        shipping_fee: '0',
+        total: String(lineTotal)
+      });
+
+      // 2) Tạo payment và liên kết với order và user
+      // Payment có order (manyToOne) và users_permissions_user (manyToOne)
+      // Khi Payment có order field, Strapi sẽ tự động thêm payment vào payment_ids của Order (vì mappedBy: "order")
+      const payment = await paymentService.createPayment({
+        method: (formData.paymentMethod as PaymentMethod) || 'cod',
+        amount: String(lineTotal),
+        status_payment: 'pending',
+        order: order.data.id, // Payment thuộc về Order - Strapi sẽ tự động thêm vào payment_ids
+        users_permissions_user: user.id // Payment thuộc về User
+      });
+
+      // Note: Không cần cập nhật payment_ids vì Strapi tự động thêm payment vào payment_ids
+      // khi Payment có order field (mappedBy: "order" trong schema)
+      // Nếu cần cập nhật thủ công, sử dụng documentId thay vì id
+
+      // 4) Thêm order items
+      for (const item of items) {
+        const effectivePrice = Math.max(0, (item.product.price - (item.product.discount || 0)));
+        await orderService.addOrderItem({
+          order_id: order.data.id,
+          product_id: item.product.id,
+          name: item.product.name,
+          quantity: item.quantity,
+          price: effectivePrice
+        });
+      }
+
+      // 5) Xóa giỏ hàng và điều hướng
       clearCart();
-      
-      // Redirect to success page
       router.push('/order-success');
     } catch (error) {
       console.error('Error submitting order:', error);
@@ -85,12 +138,12 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
-            <CheckoutForm onSubmit={handleSubmit} isLoading={isLoading} />
+            <CheckoutForm onSubmit={handleSubmit} isLoading={isLoading} formId="checkout-form" />
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <OrderSummary />
+            <OrderSummary submitFormId="checkout-form" isLoading={isLoading} />
           </div>
         </div>
 

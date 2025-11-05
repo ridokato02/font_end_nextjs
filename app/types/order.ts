@@ -1,8 +1,8 @@
-import { User } from './auth';
-import { Payment } from './payment';
-import { Coupon } from './coupon';
-import { Affiliate } from './affiliate';
-import { Product } from './product';
+import type { User } from './auth';
+import type { Payment } from './payment';
+import type { Coupon } from './coupon';
+import type { Affiliate } from './affiliate';
+import type { Product } from './product';
 
 export type OrderStatus = 'đang chờ xử lý' | 'đã xử lý' | 'đã giao hàng' | 'hủy đơn hàng';
 
@@ -13,7 +13,7 @@ export interface Order {
   status_order?: OrderStatus;
   shipping_fee?: number;
   total?: number;
-  payment_id?: Payment | number | null;
+  payment_ids?: Payment[] | number[] | null; // oneToMany relation - Order can have multiple payments
   coupon_id?: Coupon | number | null;
   affiliate_id?: Affiliate | number | null;
   canceled_at?: string | null;
@@ -22,6 +22,7 @@ export interface Order {
   publishedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  order_items?: OrderItem[];
 }
 
 export interface OrderItem {

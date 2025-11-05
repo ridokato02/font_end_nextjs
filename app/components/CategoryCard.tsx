@@ -21,7 +21,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   };
 
   return (
-    <Link href={`/products?category=${category.id}`}>
+    <Link href={`/${category.slug || 'categories/' + category.id}`}>
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group cursor-pointer">
         <div className="relative aspect-square overflow-hidden">
           <Image

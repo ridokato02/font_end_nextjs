@@ -4,7 +4,12 @@ import React from 'react';
 import { useCart } from '../contexts/CartContext';
 import Image from 'next/image';
 
-export default function OrderSummary() {
+interface OrderSummaryProps {
+  submitFormId?: string;
+  isLoading?: boolean;
+}
+
+export default function OrderSummary({ submitFormId, isLoading = false }: OrderSummaryProps) {
   const { items, totalItems, totalPrice } = useCart();
 
   const shippingFee = totalPrice > 500000 ? 0 : 30000;
@@ -15,7 +20,7 @@ export default function OrderSummary() {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Tóm tắt đơn hàng</h3>
       
       {/* Stock Warning */}
-      {items.some(item => item.product.stock <= 5) && (
+      {items.some(item => item.product.quantity <= 5) && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <div className="flex items-center">
             <svg className="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,8 +39,8 @@ export default function OrderSummary() {
           <div key={item.id} className="flex items-center space-x-3">
             <div className="w-16 h-16 relative flex-shrink-0">
               <Image
-                src={item.product.picture?.[0]?.url || '/placeholder-product.jpg'}
-                alt={item.product.picture?.[0]?.alternativeText || item.product.name}
+                src={item.product.image_url?.[0]?.url || '/placeholder-product.jpg'}
+                alt={item.product.image_url?.[0]?.alternativeText || item.product.name}
                 fill
                 className="object-cover rounded-lg"
               />
@@ -46,13 +51,13 @@ export default function OrderSummary() {
               </h4>
               <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
               <p className={`text-xs ${
-                item.product.stock > 10 
+                item.product.quantity > 10 
                   ? 'text-green-600' 
-                  : item.product.stock > 0 
+                  : item.product.quantity > 0 
                   ? 'text-yellow-600' 
                   : 'text-red-600'
               }`}>
-                Còn {item.product.stock} sản phẩm
+                Còn {item.product.quantity} sản phẩm
               </p>
             </div>
             <div className="text-sm font-medium text-gray-900">
@@ -125,8 +130,8 @@ export default function OrderSummary() {
       </div>
 
       <div className="mt-6">
-        <button className="bg-red-600 text-white w-full px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          Đặt hàng
+        <button type="submit" form={submitFormId} disabled={isLoading} className="bg-red-600 text-white w-full px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          {isLoading ? 'Đang đặt hàng...' : 'Đặt hàng'}
         </button>
       </div>
     </div>

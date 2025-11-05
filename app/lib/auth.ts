@@ -59,6 +59,46 @@ export class AuthService {
       localStorage.setItem('user', JSON.stringify(authResponse.user));
     }
   }
+
+  // Cập nhật thông tin user
+  async updateUser(userId: number, userData: {
+    username?: string;
+    email?: string;
+    phone_number?: number | string;
+    address_line?: string;
+    city?: string;
+    ward?: string;
+    country?: string;
+    postal_code?: string;
+  }): Promise<AuthResponse> {
+    try {
+      // Strapi users-permissions endpoint for updating user
+      // Note: Strapi v4+ uses /api/users/:id but requires proper permissions
+      // For authenticated users updating themselves, we can use /api/users/me or /api/users/:id
+      const response = await apiClient.put<AuthResponse>(`/api/users/${userId}`, {
+        data: userData
+      });
+      // Cập nhật localStorage với thông tin user mới
+      if (response.user) {
+        this.setAuthData(response);
+      }
+      return response;
+    } catch (error: any) {
+      console.error('Update user error:', error);
+      // Try alternative endpoint if first one fails
+      try {
+        const response = await apiClient.put<AuthResponse>(`/api/users-permissions/users/${userId}`, {
+          data: userData
+        });
+        if (response.user) {
+          this.setAuthData(response);
+        }
+        return response;
+      } catch (retryError: any) {
+        throw new Error(error.message || retryError.message || 'Cập nhật thông tin thất bại');
+      }
+    }
+  }
 }
 
 export const authService = new AuthService();

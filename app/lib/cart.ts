@@ -40,10 +40,17 @@ function transformStrapiCartItem(strapiCartItem: any): CartItem {
   return {
     id: data.id,
     documentId: data.documentId || attributes.documentId,
-    cart_id: attributes.cart_id?.data ? transformStrapiCart({ data: attributes.cart_id.data }) : attributes.cart_id,
+    // Backend uses 'cart' not 'cart_id' - manyToOne relation
+    // Support both 'cart' (correct) and 'cart_id' (legacy) for backward compatibility
+    cart: attributes.cart?.data 
+      ? transformStrapiCart({ data: attributes.cart.data }) 
+      : attributes.cart || attributes.cart_id?.data 
+        ? transformStrapiCart({ data: attributes.cart_id.data }) 
+        : attributes.cart_id,
     product_id: attributes.product_id?.data ? { id: attributes.product_id.data.id } : attributes.product_id,
     quantity: attributes.quantity || 0,
-    price_cart: attributes.price_cart || 0,
+    // price_cart is BigInteger in backend - convert to number
+    price_cart: attributes.price_cart ? Number(attributes.price_cart) : 0,
     publishedAt: attributes.publishedAt || data.publishedAt || '',
     createdAt: attributes.createdAt || data.createdAt || '',
     updatedAt: attributes.updatedAt || data.updatedAt || ''
@@ -103,7 +110,8 @@ export const cartService = {
 
   // Lấy tất cả cart items của một cart
   async getCartItems(cartId: number): Promise<CartItemResponse> {
-    const response = await apiClient.get<any>(`/api/cart-items?filters[cart_id][id][$eq]=${cartId}&populate=*`);
+    // Backend uses 'cart' not 'cart_id' for the relation field
+    const response = await apiClient.get<any>(`/api/cart-items?filters[cart][id][$eq]=${cartId}&populate=*`);
     return transformStrapiCartItemList(response);
   },
 
@@ -111,9 +119,10 @@ export const cartService = {
   async addCartItem(cartId: number, productId: number, quantity: number, price: number): Promise<{ data: CartItem }> {
     const response = await apiClient.post<any>('/api/cart-items', {
       data: {
-        cart_id: cartId,
+        cart: cartId, // Backend uses 'cart' not 'cart_id'
         product_id: productId,
         quantity,
+        // price_cart is BigInteger - can pass as number, Strapi will handle conversion
         price_cart: price
       }
     });

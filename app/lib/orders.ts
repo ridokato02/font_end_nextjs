@@ -21,7 +21,12 @@ function transformStrapiOrder(strapiOrder: any): Order {
     status_order: attributes.status_order || 'đang chờ xử lý',
     shipping_fee: attributes.shipping_fee ? Number(attributes.shipping_fee) : 0,
     total: attributes.total ? Number(attributes.total) : 0,
-    payment_id: attributes.payment_id?.data ? { id: attributes.payment_id.data.id } : attributes.payment_id,
+    // payment_ids is oneToMany relation - Order can have multiple payments
+    payment_ids: attributes.payment_ids?.data
+      ? Array.isArray(attributes.payment_ids.data)
+        ? attributes.payment_ids.data.map((p: any) => p.id || p)
+        : [attributes.payment_ids.data.id || attributes.payment_ids.data]
+      : attributes.payment_ids || null,
     coupon_id: attributes.coupon_id?.data ? { id: attributes.coupon_id.data.id } : attributes.coupon_id,
     affiliate_id: attributes.affiliate_id?.data ? { id: attributes.affiliate_id.data.id } : attributes.affiliate_id,
     canceled_at: attributes.canceled_at || null,
@@ -29,7 +34,11 @@ function transformStrapiOrder(strapiOrder: any): Order {
     delivery_at: attributes.delivery_at || null,
     publishedAt: attributes.publishedAt || data.publishedAt || '',
     createdAt: attributes.createdAt || data.createdAt || '',
-    updatedAt: attributes.updatedAt || data.updatedAt || ''
+    updatedAt: attributes.updatedAt || data.updatedAt || '',
+    // If deep-populated order_items are present, transform them
+    order_items: attributes.order_items?.data
+      ? attributes.order_items.data.map((item: any) => transformStrapiOrderItem({ data: item }))
+      : attributes.order_items || undefined
   };
 }
 
@@ -85,19 +94,21 @@ function transformStrapiOrderItemList(strapiResponse: any): OrderItemResponse {
 export const orderService = {
   // Lấy danh sách đơn hàng của user
   async getOrdersByUserId(userId: number): Promise<OrderResponse> {
-    const response = await apiClient.get<any>(`/api/orders?filters[users_id][id][$eq]=${userId}&populate=*&sort=createdAt:desc`);
+    // Theo yêu cầu: chỉ cần lấy tất cả orders (không filter theo user), tránh deep populate để không bị 400
+    const response = await apiClient.get<any>(`/api/orders?sort=createdAt:desc`);
     return transformStrapiOrderList(response);
   },
 
   // Lấy đơn hàng theo ID
   async getOrderById(id: string | number): Promise<{ data: Order }> {
     try {
-      const response = await apiClient.get<any>(`/api/orders/${id}?populate=*`);
+      // Không dùng deep populate để tránh 400; order items sẽ fetch riêng nếu cần
+      const response = await apiClient.get<any>(`/api/orders/${encodeURIComponent(String(id))}`);
       return { data: transformStrapiOrder(response) };
     } catch (error) {
       // Fallback: try by documentId filter
       try {
-        const byDoc = await apiClient.get<any>(`/api/orders?filters[documentId][$eq]=${encodeURIComponent(id)}&populate=*`);
+        const byDoc = await apiClient.get<any>(`/api/orders?filters[documentId][$eq]=${encodeURIComponent(String(id))}`);
         if (byDoc?.data && Array.isArray(byDoc.data) && byDoc.data.length > 0) {
           return { data: transformStrapiOrder({ data: byDoc.data[0] }) };
         }
@@ -108,26 +119,61 @@ export const orderService = {
 
   // Tạo đơn hàng mới
   async createOrder(orderData: {
-    users_id: number;
+    users_id?: number;
     status_order?: OrderStatus;
-    shipping_fee?: number;
-    total: number;
-    payment_id?: number;
+    shipping_fee?: number | string;
+    total: number | string;
+    payment_ids?: number[]; // oneToMany - can have multiple payments
     coupon_id?: number;
     affiliate_id?: number;
   }): Promise<{ data: Order }> {
-    const response = await apiClient.post<any>('/api/orders', { data: orderData });
+    const { users_id, payment_ids, ...rest } = orderData as any;
+    const response = await apiClient.post<any>('/api/orders', { 
+      data: {
+        ...rest,
+        // Gắn quan hệ user nếu có
+        ...(users_id !== undefined ? { users_id } : {}),
+        // payment_ids is oneToMany - can pass array of payment IDs
+        ...(payment_ids !== undefined ? { payment_ids } : {}),
+        // Strapi decimal fields are safest as strings
+        shipping_fee: rest.shipping_fee !== undefined ? String(rest.shipping_fee) : undefined,
+        total: rest.total !== undefined ? String(rest.total) : '0',
+      }
+    });
     return {
       data: transformStrapiOrder(response)
     };
   },
 
   // Cập nhật đơn hàng
-  async updateOrder(id: number, orderData: Partial<Order>): Promise<{ data: Order }> {
-    const response = await apiClient.put<any>(`/api/orders/${id}`, { data: orderData });
-    return {
-      data: transformStrapiOrder(response)
-    };
+  async updateOrder(id: number | string, orderData: Partial<Order>): Promise<{ data: Order }> {
+    try {
+      // Strapi v4+ uses documentId (UUID) for PUT requests, not numeric id
+      // Try with documentId first if it's a string UUID, otherwise use id
+      let orderId = id;
+      
+      // If id is a number, try to get documentId first
+      if (typeof id === 'number') {
+        try {
+          const order = await this.getOrderById(id);
+          if (order.data.documentId) {
+            orderId = order.data.documentId;
+          }
+        } catch {
+          // If getOrderById fails, continue with numeric id
+        }
+      }
+      
+      const response = await apiClient.put<any>(`/api/orders/${orderId}`, { data: orderData });
+      return {
+        data: transformStrapiOrder(response)
+      };
+    } catch (error: any) {
+      console.error('Update order error:', error);
+      // If 404, the order might not exist or we need different approach
+      // For oneToMany relations like payment_ids, we might need to use connect/disconnect
+      throw error;
+    }
   },
 
   // Cập nhật trạng thái đơn hàng
@@ -164,10 +210,13 @@ export const orderService = {
     product_id: number;
     name: string;
     quantity: number;
-    price: number;
+    price: number | string;
   }): Promise<{ data: OrderItem }> {
     const response = await apiClient.post<any>('/api/order-items', {
-      data: orderItemData
+      data: {
+        ...orderItemData,
+        price: orderItemData.price !== undefined ? String(orderItemData.price) : '0'
+      }
     });
     return {
       data: transformStrapiOrderItem(response)
