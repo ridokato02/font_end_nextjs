@@ -10,6 +10,7 @@ import { useCart } from '../contexts/CartContext';
 import { categorieService } from '../lib/categories';
 import { Categorie } from '../types/categorie';
 import ProductCard from '../components/ProductCard';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function SlugPage() {
   const params = useParams();
@@ -187,22 +188,9 @@ export default function SlugPage() {
     
     return (
       <div className="min-h-screen bg-gray-50">
+        <Breadcrumb product={product} />
         <main className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Breadcrumb */}
-            <nav className="mb-8">
-              <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                <li>
-                  <Link href="/" className="hover:text-red-600">Trang chủ</Link>
-                </li>
-                <li>/</li>
-                <li>
-                  <Link href="/products" className="hover:text-red-600">Sản phẩm</Link>
-                </li>
-                <li>/</li>
-                <li className="text-gray-900">{product.name}</li>
-              </ol>
-            </nav>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Product Images */}
@@ -441,6 +429,7 @@ export default function SlugPage() {
   if (type === 'category' && category) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <Breadcrumb category={category} />
         <main className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">

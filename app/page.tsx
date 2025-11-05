@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import { Product } from './types/product';
 import { productService } from './lib/products';
@@ -13,6 +13,9 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Categorie[]>([]);
+  const [subCategoriesMap, setSubCategoriesMap] = useState<Record<number, Categorie[]>>({});
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -44,6 +47,34 @@ export default function Home() {
 
     fetchCategories();
   }, []);
+
+  const handleMouseEnterCategory = async (categoryId: number) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredCategoryId(categoryId);
+    if (!subCategoriesMap[categoryId]) {
+      try {
+        const res = await categorieService.getSubCategories(categoryId);
+        setSubCategoriesMap((prev) => ({ ...prev, [categoryId]: res.data.filter((c) => c.status_categorie === 'Active') }));
+      } catch (e) {
+        // ignore fetch error for submenu
+      }
+    }
+  };
+
+  const handleMouseLeaveCategory = (categoryId: number) => {
+    if (hoveredCategoryId === categoryId) {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredCategoryId((current) => (current === categoryId ? null : current));
+        hoverTimeoutRef.current = null;
+      }, 150);
+    }
+  };
 
   const getCategoryIcon = (categoryName: string): string => {
     const iconMap: { [key: string]: string } = {
@@ -78,20 +109,51 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-6 py-6">
           {/* Left Sidebar - Category List */}
-          <aside className="w-full lg:w-64 flex-shrink-0 bg-white rounded-lg shadow-sm hidden lg:block h-fit sticky top-20">
+          <aside className="w-full lg:w-64 flex-shrink-0 bg-white rounded-lg shadow-sm hidden lg:block h-fit sticky top-20 relative z-40">
             <div className="p-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-3">Danh mục sản phẩm</h2>
               <nav className="space-y-1">
-                {categories.map((category, index) => (
-                  <Link
-                    key={category.id || index}
-                    href={category.slug ? `/${category.slug}` : '#'}
-                    className="flex items-center p-2.5 text-gray-700 hover:bg-red-50 hover:text-[#E02020] rounded-md transition-all duration-200 group"
-                  >
-                    <span className="mr-3 text-xl">{getCategoryIcon(category.name)}</span>
-                    <span className="text-sm font-medium group-hover:font-semibold">{category.name}</span>
-                  </Link>
-                ))}
+                {categories.map((category, index) => {
+                  const subcats = category.id ? subCategoriesMap[category.id] : undefined;
+                  const isHovered = hoveredCategoryId === category.id;
+                  return (
+                    <div
+                      key={category.id || index}
+                      className="relative group"
+                      onMouseEnter={() => category.id && handleMouseEnterCategory(category.id)}
+                      onMouseLeave={() => category.id && handleMouseLeaveCategory(category.id)}
+                    >
+                      <Link
+                        href={category.slug ? `/${category.slug}` : '#'}
+                        className="flex items-center p-2.5 text-gray-700 hover:bg-red-50 hover:text-[#E02020] rounded-md transition-all duration-200"
+                      >
+                        <span className="mr-3 text-xl">{getCategoryIcon(category.name)}</span>
+                        <span className="text-sm font-medium">{category.name}</span>
+                      </Link>
+
+                      {isHovered && subcats && subcats.length > 0 && (
+                        <div
+                          className="absolute left-full top-0 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50"
+                          onMouseEnter={() => category.id && handleMouseEnterCategory(category.id)}
+                          onMouseLeave={() => category.id && handleMouseLeaveCategory(category.id)}
+                        >
+                          <ul className="py-2">
+                            {subcats.map((sub) => (
+                              <li key={sub.id}>
+                                <Link
+                                  href={sub.slug ? `/${sub.slug}` : '#'}
+                                  className="block px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-[#E02020]"
+                                >
+                                  {sub.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </nav>
             </div>
           </aside>
