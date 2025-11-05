@@ -1,5 +1,6 @@
 import { apiClient } from './api';
 import { Order, OrderItem, OrderResponse, OrderItemResponse, OrderStatus } from '../types/order';
+import { transformStrapiProduct } from './products';
 
 // Helper function để transform Strapi Order
 function transformStrapiOrder(strapiOrder: any): Order {
@@ -59,7 +60,10 @@ function transformStrapiOrderItem(strapiOrderItem: any): OrderItem {
     id: data.id,
     documentId: data.documentId || attributes.documentId,
     order_id: attributes.order_id?.data ? transformStrapiOrder({ data: attributes.order_id.data }) : attributes.order_id,
-    product_id: attributes.product_id?.data ? { id: attributes.product_id.data.id } : attributes.product_id,
+    // Transform product_id đầy đủ nếu có populate, bao gồm image_url
+    product_id: attributes.product_id?.data 
+      ? transformStrapiProduct({ data: attributes.product_id.data })
+      : attributes.product_id,
     name: attributes.name || '',
     quantity: attributes.quantity || 0,
     price: attributes.price ? Number(attributes.price) : 0,
@@ -101,19 +105,37 @@ export const orderService = {
 
   // Lấy đơn hàng theo ID
   async getOrderById(id: string | number): Promise<{ data: Order }> {
+    // Try filter by id first (more reliable than path param)
+    const asNum = Number(id);
+    if (!Number.isNaN(asNum)) {
+      try {
+        // Use filter approach with populate for nested relations
+        const byId = await apiClient.get<any>(`/api/orders?filters[id][$eq]=${asNum}&populate[order_items][populate][product_id][populate]=*`);
+        if (byId?.data && Array.isArray(byId.data) && byId.data.length > 0) {
+          return { data: transformStrapiOrder({ data: byId.data[0] }) };
+        }
+      } catch (error) {
+        console.warn(`⚠️ Filter by id failed, trying other methods:`, error);
+      }
+    }
+
+    // Fallback 1: try by documentId filter
     try {
-      // Không dùng deep populate để tránh 400; order items sẽ fetch riêng nếu cần
-      const response = await apiClient.get<any>(`/api/orders/${encodeURIComponent(String(id))}`);
+      const byDoc = await apiClient.get<any>(`/api/orders?filters[documentId][$eq]=${encodeURIComponent(String(id))}&populate[order_items][populate][product_id][populate]=*`);
+      if (byDoc?.data && Array.isArray(byDoc.data) && byDoc.data.length > 0) {
+        return { data: transformStrapiOrder({ data: byDoc.data[0] }) };
+      }
+    } catch (error) {
+      console.warn(`⚠️ Filter by documentId failed:`, error);
+    }
+
+    // Fallback 2: Try direct findOne by path param with simpler populate
+    try {
+      const response = await apiClient.get<any>(`/api/orders/${encodeURIComponent(String(id))}?populate=*`);
       return { data: transformStrapiOrder(response) };
     } catch (error) {
-      // Fallback: try by documentId filter
-      try {
-        const byDoc = await apiClient.get<any>(`/api/orders?filters[documentId][$eq]=${encodeURIComponent(String(id))}`);
-        if (byDoc?.data && Array.isArray(byDoc.data) && byDoc.data.length > 0) {
-          return { data: transformStrapiOrder({ data: byDoc.data[0] }) };
-        }
-      } catch {}
-      throw error;
+      console.error(`❌ Order not found by id/documentId: ${id}`, error);
+      throw new Error(`Order with id ${id} not found`);
     }
   },
 
@@ -200,7 +222,8 @@ export const orderService = {
 
   // Lấy order items của một order
   async getOrderItems(orderId: number): Promise<OrderItemResponse> {
-    const response = await apiClient.get<any>(`/api/order-items?filters[order_id][id][$eq]=${orderId}&populate=*`);
+    // Populate product_id với đầy đủ thông tin, đặc biệt là image_url
+    const response = await apiClient.get<any>(`/api/order-items?filters[order_id][id][$eq]=${orderId}&populate[product_id][populate]=*`);
     return transformStrapiOrderItemList(response);
   },
 
