@@ -7,6 +7,7 @@ import { productService } from './lib/products';
 import { categorieService } from './lib/categories';
 import { Categorie } from './types/categorie';
 import Link from 'next/link';
+import Banner from './components/Banner';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -94,12 +95,7 @@ export default function Home() {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             {/* Hero Banner Section - Full Width */}
-            <section className="w-full mb-6">
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg overflow-hidden h-64 md:h-80 lg:h-96 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-gray-200 opacity-50"></div>
-                <p className="text-gray-500 text-lg relative z-10">[Main Banner / Carousel]</p>
-              </div>
-            </section>
+            <Banner />
 
             {/* Flash Sale Section */}
             <section className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
