@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,17 +10,16 @@ import { categorieService } from '../lib/categories';
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rootCategories, setRootCategories] = useState<Categorie[]>([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await categorieService.getAllCategories();
-        setCategories(response.data);
-        const roots = response.data.filter(
-          (cat) => cat.status_categorie === 'Active' && !cat.categorie_id
+        // Filter for active categories as per user-facing page best practices
+        const activeCategories = response.data.filter(
+          (cat) => cat.status_categorie === 'Active'
         );
-        setRootCategories(roots);
+        setCategories(activeCategories);
       } catch (error) {
         console.error('Error fetching categories:', error);
       } finally {
@@ -29,68 +29,76 @@ export default function CategoriesPage() {
 
     fetchCategories();
   }, []);
-  // No additional filtering; display active root categories like the visual layout
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header (matches the provided image style) */}
-          <div className="mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800">DANH MỤC</h2>
-          </div>
-
-          {/* Categories Grid matching icon-with-label layout */}
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-            </div>
-          ) : rootCategories.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.636M15 6.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Không có danh mục
-              </h3>
-              <p className="text-gray-600">
-                Không tìm thấy danh mục nào
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 xl:grid-cols-10 gap-y-8 gap-x-6">
-              {rootCategories.map((category) => {
-                const img = category.image_url_categorie?.[0];
-                const imageUrl = img?.url || '/placeholder-category.jpg';
-                const alt = img?.alternativeText || category.name;
-                return (
-                  <Link
-                    key={category.id}
-                    href={category.slug ? `/${category.slug}` : '#'}
-                    className="flex flex-col items-center group"
-                  >
-                    <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-blue-50 flex items-center justify-center overflow-hidden shadow-sm group-hover:shadow transition-shadow">
-                      <div className="relative w-20 h-20 md:w-24 md:h-24">
-                        <Image
-                          src={imageUrl}
-                          alt={alt}
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 768px) 25vw, (max-width: 1200px) 10vw, 96px"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 text-center text-sm text-gray-800 leading-tight">
-                      {category.name}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+    <div className="bg-gray-50 min-h-screen">
+      <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl text-gray-900 ">
+            Tất Cả Danh Mục
+          </h1>
+          <p className="mt-4 max-w-2xl mx-auto text-gray-500">
+            Khám phá thế giới sản phẩm của chúng tôi qua các danh mục được tuyển chọn.
+          </p>
         </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center py-16 px-4 bg-white rounded-lg shadow-md">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                vectorEffect="non-scaling-stroke"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9,17a4,4,0,0,1,5.656,0M9,12h6m-6-4h6m2,5.291A7.962,7.962,0,0,1,12,15c-2.34,0-4.29-1.009-5.824-2.636M15,6.5a3,3,0,1,1-6,0A3,3,0,0,1,15,6.5Z"
+              />
+            </svg>
+            <h3 className="mt-4 text-2xl font-semibold text-gray-900">
+              Không tìm thấy danh mục
+            </h3>
+            <p className="mt-2 text-base text-gray-500">
+              Hiện chưa có danh mục nào. Vui lòng quay lại sau!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
+            {categories.map((category) => {
+              const img = category.image_url_categorie?.[0];
+              const imageUrl = img?.url || '/placeholder-product.jpg'; // Using a more generic placeholder
+              const alt = img?.alternativeText || category.name;
+              return (
+                <Link
+                  key={category.id}
+                  href={category.slug ? `/${category.slug}` : '#'}
+                  className="group text-center"
+                >
+                  <div className="relative w-full h-40 bg-white rounded-lg shadow-md overflow-hidden transform transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:-translate-y-2">
+                    <Image
+                      src={imageUrl}
+                      alt={alt}
+                      fill
+                      className="object-contain p-2" // Use contain to see the whole image
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16.66vw"
+                    />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-gray-800 transition-colors duration-300 group-hover:text-blue-600">
+                    {category.name}
+                  </h3>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
   );
