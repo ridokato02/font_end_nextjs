@@ -8,7 +8,7 @@ import { useCart } from '../contexts/CartContext';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
-  const { totalItems } = useCart();
+  const { totalItems, clearCart } = useCart();
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -79,7 +79,7 @@ export default function Header() {
                   <div className="text-sm font-medium text-gray-700">{user?.username}</div>
                 </div>
                 <button 
-                  onClick={logout}
+                  onClick={() => { clearCart(); logout(); }}
                   className="text-gray-700 hover:text-[#E02020] text-sm px-2 py-1 rounded hover:bg-gray-100 transition-colors"
                 >
                   Đăng xuất

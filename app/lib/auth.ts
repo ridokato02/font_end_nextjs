@@ -31,6 +31,8 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
+      // Also clear persisted cart to avoid leftover items after logout
+      localStorage.removeItem('cart');
     }
   }
 

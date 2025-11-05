@@ -98,8 +98,10 @@ function transformStrapiOrderItemList(strapiResponse: any): OrderItemResponse {
 export const orderService = {
   // Lấy danh sách đơn hàng của user
   async getOrdersByUserId(userId: number): Promise<OrderResponse> {
-    // Theo yêu cầu: chỉ cần lấy tất cả orders (không filter theo user), tránh deep populate để không bị 400
-    const response = await apiClient.get<any>(`/api/orders?sort=createdAt:desc`);
+    // Chỉ lấy các orders thuộc về user hiện tại, tránh populate sâu để an toàn
+    const response = await apiClient.get<any>(
+      `/api/orders?filters[users_id][id][$eq]=${userId}&sort=createdAt:desc`
+    );
     return transformStrapiOrderList(response);
   },
 
