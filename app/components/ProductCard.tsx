@@ -39,7 +39,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const discountPercentage = product.discount ? Math.round((product.discount / product.price) * 100) : 0;
 
   return (
-    <Link href={`/products/${product.id}`} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group block">
+    <Link href={`/${product.slug}`} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group block">
       <div className="relative aspect-square overflow-hidden">
         {loadingImage ? (
           <div className="w-full h-full bg-gray-200 animate-pulse"></div>

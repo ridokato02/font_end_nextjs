@@ -105,9 +105,10 @@ export default function CheckoutPage() {
         });
       }
 
-      // 5) Xóa giỏ hàng và điều hướng
+      // 5) Điều hướng đến trang thành công và xóa giỏ hàng
+      // Chuyển hướng trước để tránh race condition với useEffect kiểm tra giỏ hàng rỗng
+      router.replace(`/order-success?orderId=${order.data.id}`);
       clearCart();
-      router.push('/order-success');
     } catch (error) {
       console.error('Error submitting order:', error);
       alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');

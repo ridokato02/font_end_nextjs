@@ -45,7 +45,7 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-bold text-lg mb-4">Đăng ký nhận tin</h3>
             <p className="text-gray-300 text-sm mb-4">Đăng ký để nhận những ưu đãi mới nhất!</p>
-            <div className="flex">
+            <div className="flex border border-gray-300 rounded-md bg-white">
               <input type="email" placeholder="Nhập email của bạn" className="w-full px-3 py-2 text-gray-800 rounded-l-md focus:outline-none"/>
               <button className="bg-[#E02020] text-white px-4 py-2 rounded-r-md hover:bg-red-700">Đăng ký</button>
             </div>

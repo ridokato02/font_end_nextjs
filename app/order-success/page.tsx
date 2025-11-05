@@ -1,9 +1,56 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { orderService } from '../lib/orders';
+import { Order } from '../types/order';
 
 export default function OrderSuccessPage() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (!orderId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await orderService.getOrderById(orderId);
+        setOrder(response.data);
+      } catch (error) {
+        console.error('Error fetching order:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [orderId]);
+
+  // Format order ID for display
+  const formatOrderId = (id: number | string | undefined) => {
+    if (!id) return 'N/A';
+    return `#ORD-${String(id).padStart(6, '0')}`;
+  };
+
+  // Format date
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return new Date().toLocaleString('vi-VN');
+    return new Date(dateString).toLocaleString('vi-VN');
+  };
+
+  // Format price
+  const formatPrice = (price: number | string | undefined) => {
+    if (!price) return '0';
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return numPrice.toLocaleString('vi-VN');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
@@ -24,13 +71,24 @@ export default function OrderSuccessPage() {
         </p>
 
         {/* Order Info */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <div className="text-sm text-gray-600 space-y-2">
-            <p>• Mã đơn hàng: <span className="font-semibold text-gray-900">#ORD-{Date.now().toString().slice(-6)}</span></p>
-            <p>• Thời gian đặt hàng: <span className="font-semibold text-gray-900">{new Date().toLocaleString('vi-VN')}</span></p>
-            <p>• Dự kiến giao hàng: <span className="font-semibold text-gray-900">1-3 ngày làm việc</span></p>
+        {loading ? (
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <div className="animate-pulse space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <div className="text-sm text-gray-600 space-y-2">
+              <p>• Mã đơn hàng: <span className="font-semibold text-gray-900">{formatOrderId(order?.id)}</span></p>
+              <p>• Thời gian đặt hàng: <span className="font-semibold text-gray-900">{formatDate(order?.createdAt)}</span></p>
+              <p>• Tổng tiền: <span className="font-semibold text-gray-900">{formatPrice(order?.total)}₫</span></p>
+              <p>• Dự kiến giao hàng: <span className="font-semibold text-gray-900">1-3 ngày làm việc</span></p>
+            </div>
+          </div>
+        )}
 
         {/* Next Steps */}
         <div className="text-left mb-6">
