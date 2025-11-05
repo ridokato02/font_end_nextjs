@@ -291,6 +291,7 @@ export default function SlugPage() {
                       </span>
                     )}
                   </div>
+                  <span className="ml-4 text-sm text-gray-600">Đã bán {product.sold ?? 0}</span>
                 </div>
 
                 <div className="mb-6">

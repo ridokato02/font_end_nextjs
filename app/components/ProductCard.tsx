@@ -37,6 +37,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const imageUrl = images.length > 0 ? images[0].url : '/placeholder-product.jpg';
   const finalPrice = product.price - (product.discount || 0);
   const discountPercentage = product.discount ? Math.round((product.discount / product.price) * 100) : 0;
+  const soldCount = product.sold ?? 0;
 
   return (
     <Link href={`/${product.slug}`} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group block">
@@ -75,6 +76,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     </p>
                 )}
             </div>
+            <div className="text-xs text-gray-500">Đã bán {soldCount}</div>
         </div>
 
         <button 

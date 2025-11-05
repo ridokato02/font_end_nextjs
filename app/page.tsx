@@ -69,6 +69,10 @@ export default function Home() {
     return iconMap[categoryName] || '📦';
   };
 
+  const featuredProducts = products.filter((p) => p.featured === 'có');
+  const unsoldProducts = products.filter((p) => (p.sold ?? 0) === 0);
+  const bestSellingProducts = products.filter((p) => (p.sold ?? 0) >= 20);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,9 +159,9 @@ export default function Home() {
                   <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E02020]"></div>
                   </div>
-                ) : products.length > 10 ? (
+                ) : bestSellingProducts.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                    {products.slice(10, 20).map((product) => (
+                    {bestSellingProducts.slice(0, 10).map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
                   </div>
@@ -191,9 +195,9 @@ export default function Home() {
                   <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E02020]"></div>
                   </div>
-                ) : products.length > 20 ? (
+                ) : featuredProducts.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                    {products.slice(20, 30).map((product) => (
+                    {featuredProducts.slice(0, 10).map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
                   </div>
@@ -227,9 +231,9 @@ export default function Home() {
                   <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E02020]"></div>
                   </div>
-                ) : products.length > 30 ? (
+                ) : unsoldProducts.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                    {products.slice(30, 40).map((product) => (
+                    {unsoldProducts.slice(0, 10).map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
                   </div>

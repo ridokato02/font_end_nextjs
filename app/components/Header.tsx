@@ -48,7 +48,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Tìm kiếm sản phẩm..."
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E02020] focus:border-[#E02020] text-sm"
+                className="w-full px-4 py-2.5 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E02020] focus:border-[#E02020] text-sm"
               />
               <button className="absolute right-0 top-0 h-full bg-[#E02020] text-white px-4 rounded-r-md hover:bg-red-700 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,9 +116,9 @@ export default function Header() {
               <Link href="/products" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
                 Sản phẩm
               </Link>
-              <Link href="/categories" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
+              {/* <Link href="/categories" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
                 Danh mục sản phẩm
-              </Link>
+              </Link> */}
               <Link href="/orders" className="text-gray-700 hover:text-[#E02020] font-medium text-sm transition-colors">
                 Đơn hàng
               </Link>
