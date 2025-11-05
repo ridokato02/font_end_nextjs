@@ -105,38 +105,26 @@ export const orderService = {
 
   // Lấy đơn hàng theo ID
   async getOrderById(id: string | number): Promise<{ data: Order }> {
-    // Try filter by id first (more reliable than path param)
+    // Backend controller tự động populate order_items và product_id
+    // Chỉ call API 1 lần với filter approach (đáng tin cậy hơn path param)
     const asNum = Number(id);
-    if (!Number.isNaN(asNum)) {
-      try {
-        // Use filter approach with populate for nested relations
-        const byId = await apiClient.get<any>(`/api/orders?filters[id][$eq]=${asNum}&populate[order_items][populate][product_id][populate]=*`);
-        if (byId?.data && Array.isArray(byId.data) && byId.data.length > 0) {
-          return { data: transformStrapiOrder({ data: byId.data[0] }) };
-        }
-      } catch (error) {
-        console.warn(`⚠️ Filter by id failed, trying other methods:`, error);
-      }
-    }
-
-    // Fallback 1: try by documentId filter
-    try {
-      const byDoc = await apiClient.get<any>(`/api/orders?filters[documentId][$eq]=${encodeURIComponent(String(id))}&populate[order_items][populate][product_id][populate]=*`);
-      if (byDoc?.data && Array.isArray(byDoc.data) && byDoc.data.length > 0) {
-        return { data: transformStrapiOrder({ data: byDoc.data[0] }) };
-      }
-    } catch (error) {
-      console.warn(`⚠️ Filter by documentId failed:`, error);
-    }
-
-    // Fallback 2: Try direct findOne by path param with simpler populate
-    try {
-      const response = await apiClient.get<any>(`/api/orders/${encodeURIComponent(String(id))}?populate=*`);
-      return { data: transformStrapiOrder(response) };
-    } catch (error) {
-      console.error(`❌ Order not found by id/documentId: ${id}`, error);
+    const isNumeric = !Number.isNaN(asNum);
+    
+    // Chọn filter query dựa trên loại id
+    const filterQuery = isNumeric 
+      ? `filters[id][$eq]=${asNum}`
+      : `filters[documentId][$eq]=${encodeURIComponent(String(id))}`;
+    
+    // Populate order_items và product_id để có đầy đủ thông tin chi tiết
+    const response = await apiClient.get<any>(
+      `/api/orders?${filterQuery}&populate[order_items][populate][product_id][populate]=*`
+    );
+    
+    if (!response?.data || !Array.isArray(response.data) || response.data.length === 0) {
       throw new Error(`Order with id ${id} not found`);
     }
+    
+    return { data: transformStrapiOrder({ data: response.data[0] }) };
   },
 
   // Tạo đơn hàng mới
