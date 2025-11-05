@@ -1,19 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems, clearCart } = useCart();
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header
+      className={`bg-white shadow-md sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'py-0' : 'py-0'}`}>
       {/* Top Header */}
-      <div className="bg-[#F8F8F8] text-gray-600 py-2 hidden md:block">
+      <div className={`bg-[#F8F8F8] text-gray-600 py-2 hidden md:block transition-all duration-300 ${isScrolled ? '-mt-10 opacity-0' : 'mt-0 opacity-100'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center text-xs">
             <div className="flex items-center space-x-4">
@@ -32,11 +42,11 @@ export default function Header() {
 
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 lg:h-20">
+        <div className={`flex justify-between items-center transition-all duration-300 ${isScrolled ? 'h-16' : 'h-16 lg:h-20'}`}>
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="text-4xl font-bold text-[#E02020]">
+              <div className={`font-bold text-[#E02020] transition-all duration-300 ${isScrolled ? 'text-3xl' : 'text-4xl'}`}>
                 Chiaki
               </div>
             </Link>
@@ -48,7 +58,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Tìm kiếm sản phẩm..."
-                className="w-full px-4 py-2.5 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E02020] focus:border-[#E02020] text-sm"
+                className={`w-full px-4 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E02020] focus:border-[#E02020] text-sm transition-all duration-300 ${isScrolled ? 'py-2' : 'py-2.5'}`}
               />
               <button className="absolute right-0 top-0 h-full bg-[#E02020] text-white px-4 rounded-r-md hover:bg-red-700 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +74,7 @@ export default function Header() {
               <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
               </svg>
-              <span className="text-sm">Giỏ hàng</span>
+              <span className="text-sm hidden md:block">Giỏ hàng</span>
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#E02020] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                   {totalItems}
